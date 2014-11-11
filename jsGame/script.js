@@ -30,7 +30,9 @@
 				obtained by finding the angle between
 					player and mouse position when clicked
 	*/
+	//TODO: make this function take args px, py
 	function bullet () {
+		//TODO: make this this.px = px, etc
 		this.px = player.x;
 		this.py = player.y;
 		this.xvel = mousePos.x;
@@ -99,6 +101,7 @@ function update() {
 	}, false);
 
 	canvas.addEventListener('mousedown', function(evt) {
+		//TODO: bullet (player.x, player.y)
 		bullet ();
 	}, false);
 	
