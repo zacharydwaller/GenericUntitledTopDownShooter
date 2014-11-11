@@ -1,36 +1,46 @@
 
 	var canvas = document.getElementById('myCanvas');
 	var context = canvas.getContext('2d');
-	var mousePos = [0,0];
-	var playerPos = [100,100];
+	var playerPos = [canvas.width / 2, canvas.height / 2]
+	
+	/*
+		player struct
+		vars:
+			x, y:
+				player position on canvas
+	*/
+
+	function player() {
+		this.x = playerPos[0];
+		this.y = playerPos[1];
+		
+		context.beginPath();
+		context.rect(x - 5, y, 10, 15);
+		context.arc(x, y, 5, 0, Math.PI, true);
+		context.closePath();
+		context.fill();
+	}
 	
 	/*
 		bullet struct
 		vars:
-			x, y: player position on canvas
+			px, py: player position on canvas
 			xvel, yvel:
 				x and y velocity (angle) of the bullet
 				obtained by finding the angle between
 					player and mouse position when clicked
 	*/
-	//TODO: Write getPlayerPos();
-	function player() {
-		playerPos = getPlayerPos();
-	}
-	
 	function bullet () {
-		this.x = 100;
-		this.y = 100;
+		this.px = player.x;
+		this.py = player.y;
 		this.xvel = mousePos.x;
 		this.yvel = mousePos.y;
 		
 		
 		
 		context.beginPath();
-		context.moveTo(x,y);
-		context.lineTo(xvel,yvel);
-		context.arc(xvel, yvel, 3, 0, 2 * Math.PI);
-		context.stroke();
+		context.arc(xvel, yvel, 2, 0, 2 * Math.PI);
+		context.fill();
 	}
 
 	
@@ -78,16 +88,20 @@ function getMousePos(canvas, evt) {
 		};
 }
 
-canvas.addEventListener('mousemove', function(evt) {
-	mousePos = getMousePos(canvas, evt);
-}, false);
 
-canvas.addEventListener('mousedown', function(evt) {
-	bullet ();
-}, false);
 
 setInterval(function() {update()}, 1000 / 30);
 function update() {
+	player();
+
+	canvas.addEventListener('mousemove', function(evt) {
+		mousePos = getMousePos(canvas, evt);
+	}, false);
+
+	canvas.addEventListener('mousedown', function(evt) {
+		bullet ();
+	}, false);
+	
 	var message = "Mouse Position: " + mousePos.x + " , " + mousePos.y;
 	writeMessage (canvas, message);
 }
