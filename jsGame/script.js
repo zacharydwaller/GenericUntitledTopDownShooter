@@ -5,6 +5,8 @@
 
 var canvas	= document.getElementById('myCanvas');
 var context	= canvas.getContext('2d');
+var map = new Map();
+
 //tick = 1000 divided by frames per second
 var tick		= 1000 / 60;
 var tickCount	= 0;
@@ -32,31 +34,32 @@ var mouseDown;
 
 //Player initialization
 var player	= new Player();
-player.x	= canvas.width  / 2;
-player.y	= canvas.height / 2;
+player.x	= map.w  / 2;
+player.y	= map.h / 2;
 
 //Game Update
 setInterval (function () {update ()}, tick);
 function update() {
 	//Frame initialization
 	tickCount++;
-	context.clearRect(0, 0, canvas.width, canvas.height);
+	map.draw();
 	
 	//write mouse position
-	var message = "Mouse Position: " + mousePos.x + " , " + mousePos.y;
-	writeMessage (canvas, message);
+	//var message = "Mouse Position: " + mousePos.x + " , " + mousePos.y;
+	//writeMessage (canvas, message);
 	
 	//Fire bullet if mouse is pressed
 	if (mouseDown == true) {
 		if (tickCount % fireDelay == 0) {
-			shoot();
+			player.shoot();
 		}
 	}
 	
 	//Player control
-	movePlayer();
-	player.decelerate();
+	player.input();
+	player.hitTest();
 	player.move();
+	player.decelerate();
 	player.draw();
 	
 	//Bullet control. For each bullet i
@@ -76,12 +79,62 @@ function Player() {
 	this.xvel = 0;
 	this.yvel = 0;
 	
-	this.move = function() {
-		this.x += this.xvel;
- 		this.y += this.yvel;
+	this.input = function() {
+		//key processing
+		if (keyPressed[W]) {
+			if (this.yvel >= -playerMaxSpeed) {
+				this.yvel -= playerAccel;
+			}
+		}
+		if (keyPressed[S]) {
+			if (this.yvel <= playerMaxSpeed) {
+				this.yvel += playerAccel;
+			}
+		}
+		if (keyPressed[A]) {
+			if (this.xvel >= -playerMaxSpeed) {
+				this.xvel -= playerAccel;
+			}
+		}
+		if (keyPressed[D]) {
+			if (this.xvel <= playerMaxSpeed) {
+				this.xvel += playerAccel;
+			}
+		}
 	};
 	
-	this.decelerate = function () {
+	//checks for collisions
+	this.hitTest = function() {
+		this.hitTop		= this.y - 5;
+		this.hitBot		= this.y + 15;
+		this.hitLeft	= this.x - 10;
+		this.hitRight	= this.x + 10;
+		
+		if (this.hitLeft <= 0) {
+			this.xvel += 2;
+			this.x = 10;
+		}
+		if (this.hitRight >= map.w) {
+			this.xvel -= 2;
+			this.x = map.w - 10;
+		}
+		if (this.hitTop <= 0) {
+			this.yvel += 2;
+			this.y = 10;
+		}
+		if (this.hitBot >= map.h) {
+			this.yvel -= 2;
+			this.y = map.h -20;
+		}
+	};
+	
+	this.move = function() {
+		//move player according to final velocity 
+		this.x += this.xvel;
+		this.y += this.yvel;
+	};
+		
+	this.decelerate = function() {
 		if (this.xvel < 0) {
 			this.xvel += 1;
 		} else if (this.xvel > 0) {
@@ -92,7 +145,13 @@ function Player() {
 		} else if (this.yvel > 0) {
 			this.yvel -= 1;
 		}
-	}
+	};
+	
+	//Creates a new Bullet instance, increments number of bullets fired.
+	this.shoot = function() {
+		timesShot++;
+		shot[timesShot] = new Bullet();
+	};
 	
 	this.draw = function() {
 		context.beginPath();
@@ -136,34 +195,22 @@ function Bullet() {
 	};
 }
 
-//Moves Player based on keypresses
-function movePlayer() {
-	if (keyPressed[W]) {
-		if (player.yvel >= -playerMaxSpeed) {
-			player.yvel -= playerAccel;
-		}
+function Map() {
+	this.w = canvas.width;
+	this.h = canvas.height;
+	
+	this.draw = function() {
+		context.clearRect(0, 0, this.w, this.h);
+		context.beginPath()
+		context.linewidth = 3;
+		context.moveTo(0,0);
+		context.lineTo(this.w,0);
+		context.lineTo(this.w,this.h);
+		context.lineTo(0,this.h);
+		context.lineTo(0,0);
+		context.closePath();
+		context.stroke();
 	}
-	if (keyPressed[S]) {
-		if (player.yvel <= playerMaxSpeed) {
-			player.yvel += playerAccel;
-		}
-	}
-	if (keyPressed[A]) {
-		if (player.xvel >= -playerMaxSpeed) {
-			player.xvel -= playerAccel;
-		}
-	}
-	if (keyPressed[D]) {
-		if (player.xvel <= playerMaxSpeed) {
-			player.xvel += playerAccel;
-		}
-	}
-}
-
-//Creates a new Bullet instance, increments number of bullets fired.
-function shoot() {
-	timesShot++;
-	shot[timesShot] = new Bullet();
 }
 
 /*
@@ -231,5 +278,5 @@ window.addEventListener ('mouseup', function(evt) {
 	mouseDown = false;
 }, false);
 window.addEventListener ('click', function(evt) {
-	shoot();
+	player.shoot();
 }, false);
