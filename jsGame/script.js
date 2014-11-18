@@ -1,6 +1,5 @@
 /*TODO:
- * 	Add bounds so player can't leave the canvas
- * 	Start implementing enemies, swarms?
+ * 	Start implementing enemies
  */
 
 var canvas	= document.getElementById('myCanvas');
