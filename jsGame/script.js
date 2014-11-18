@@ -1,5 +1,9 @@
 /*TODO:
  * 	Start implementing enemies
+ *	Implement a sprinting system
+ *		Can't shoot during
+ *		Shift to sprint
+ *		On mobile double tap to sprint
  */
 
 var canvas	= document.getElementById('myCanvas');
@@ -11,8 +15,8 @@ var tick		= 1000 / 60;
 var tickCount	= 0;
 
 //Player vars
-var playerAccel		= 3;
-var playerMaxSpeed	= 6;
+var playerAccel		= 2;
+var playerMaxSpeed	= 2;
 
 //Bullet vars
 var bulletSpeed		= 15;
@@ -61,10 +65,39 @@ function update() {
 	player.decelerate();
 	player.draw();
 	
+	
 	//Bullet control. For each bullet i
 	for (var i = 1; i <= timesShot; i++) {
 		shot[i].move();
 		shot[i].draw();
+	}
+}
+
+/*
+	Enemy object
+	Three types: Normal, Strong, Fast
+		1 - Normal
+			Normal speed
+			3 hp
+		2 - Strong
+			Slower speed
+			5 hp
+		3 - Fast
+			Very fast
+			1 hp
+	(player's speed is 2)
+*/
+function Enemy(type) {
+	this.type = type; //
+	this.x;
+	this.y;
+	this.xvel = 0;
+	this.yvel = 0;
+	
+	if (this.type == 1) {
+		this.maxSpd = 5;
+	} else if (this.type == 2) {
+		this.maxSpd = 3;
 	}
 }
 
