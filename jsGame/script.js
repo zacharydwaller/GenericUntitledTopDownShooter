@@ -212,38 +212,8 @@ function Map() {
 	}
 }
 
-/*
-	writeMessage:
-		writes a message in black text to a spot below the tic-tac-toe board
-		note: clears out previous text		
-	
-	args:s
-		canvas: which canvas to draw on (should always be: canvas)
-		message: a string which will be drawn in canvas
-*/
-function writeMessage (canvas, message) {
-	context.clearRect(0, canvas.height - 50, canvas.width, canvas.height);
-	context.font = '18pt Calibri';
-	context.fillStyle = 'black';
-	context.fillText(message, 10, canvas.height - 10);
-	}
-	
-/*
-	writeError:
-		writes a message in black text to a spot below the tic-tac-toe board
-		note: clears out previous text		
-
-	args:
-		canvas: which canvas to draw on (should always be: canvas)
-		message: a string which will be drawn in canvas
-*/
-function writeError (canvas, message) {
-	context.font = '18pt Calibri';
-	context.fillStyle = 'red';
-	context.fillText(message, 10, 500);
-}
-
-//Simply gets the mouse's position
+//Gets the mouse's position
+//Borrowed from Dave/Sushil's tic-tac-toe code
 function getMousePos (canvas, evt) {
 	var rect = canvas.getBoundingClientRect();
 		return {
