@@ -4,9 +4,7 @@
  *		Can't shoot during
  *		Shift to sprint
  *		On mobile double tap to sprint
- 
- 
- 	//Changed
+ *	WASD and Arrow Keys for movement
  */
 
 var canvas	= document.getElementById('myCanvas');
