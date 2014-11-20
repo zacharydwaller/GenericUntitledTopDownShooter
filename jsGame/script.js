@@ -4,6 +4,9 @@
  *		Can't shoot during
  *		Shift to sprint
  *		On mobile double tap to sprint
+ 
+ 
+ 	//Changed
  */
 
 var canvas	= document.getElementById('myCanvas');
