@@ -1,12 +1,3 @@
-/*TODO:
- * 	Start implementing enemies
- *	Implement a sprinting system
- *		Can't shoot during
- *		Shift to sprint
- *		On mobile double tap to sprint
- *	WASD and Arrow Keys for movement
- */
-
 var canvas	= document.getElementById('myCanvas');
 var context	= canvas.getContext('2d');
 var map = new Map();
@@ -18,6 +9,7 @@ var tickCount	= 0;
 //Player vars
 var playerAccel		= 2;
 var playerMaxSpeed	= 2;
+var invincibleTime = 30;
 
 //Bullet vars
 var bulletSpeed		= 15;
@@ -29,6 +21,8 @@ var shot			= [];
 var spawnInterval = 120;
 var numEnemies = 0;
 var enemy = [];
+var enemyBaseSpeed = 3;
+var enemyBaseAccel = 0.25;
 
 //Control key codes
 var W = 87;
@@ -44,6 +38,7 @@ var RED = "#FF0000";
 var mousePos	= [2];
 var keyPressed	= [ ];
 var mouseDown;
+var mouseTick;
 
 //Player initialization
 var player	= new Player();
@@ -57,39 +52,46 @@ function update() {
 	tickCount++;
 	map.draw();
 	
-	//Fire bullet if mouse is pressed
-	if (mouseDown == true) {
-		if (tickCount % fireDelay == 0) {
-			player.shoot();
+	if (!player.isDead) {
+		if (mouseDown) {
+			if (mouseTick % fireDelay == 0) {
+					player.shoot();
+			}
+			mouseTick++;
 		}
 	}
 	
 	//Player control
-	player.input();
-	player.hitTest();
-	player.move();
-	player.decelerate();
-	player.draw();
+	if (!player.isDead) {
+		player.input();
+		player.hitTest();
+		player.move();
+		player.decelerate();
+		player.draw();
+	}
 	
 	//Enemy control
 	for (var i = 1; i < numEnemies; i++) {
-		
-		enemy[i].findPlayer();
-		enemy[i].move();
-		enemy[i].draw();
+		if (!enemy[i].isDead) {
+			enemy[i].findPlayer();
+			enemy[i].move();
+			enemy[i].draw();
+		}
 	}
 	
 	//Bullet control. For each bullet i
 	for (var i = 1; i <= timesShot; i++) {
-		shot[i].move();
-		shot[i].draw();
-		shot[i].hitTest();
+		if (!shot[i].isDestroyed){
+			shot[i].move();
+			shot[i].draw();
+			shot[i].hitTest();
+		}
 	}
 	
 	//Spawn enemies
 	if (tickCount % spawnInterval == 0) {
 		console.log("Enemy Spawned");
-		console.log(spawnInterval);
+		console.log("Ticks until next spawn:", spawnInterval, "(", spawnInterval / 60, "seconds)");
 		numEnemies++;
 		spawnInterval--;
 		if (spawnInterval < 10) 
@@ -130,9 +132,9 @@ function Enemy(type) {
 	this.isDead = false;
 	
 	if (this.type == 1) {
-		this.maxSpd = 5;
+		this.maxSpd = enemyBaseSpeed;
 		this.health = 3;
-		this.accel = .25;
+		this.accel = enemyBaseAccel;
 	}
 
  	if (Math.random() > .5) {
@@ -179,6 +181,14 @@ function Enemy(type) {
 		}
 	};
 	
+	this.takeDamage = function() {
+		this.health--;
+		if (this.health <= 0) {
+			this.x = -10;
+			this.isDead = true;
+		}
+	};
+	
 	this.move = function() {
 		if (!this.isDead) {
 		//move player according to final velocity 
@@ -197,6 +207,9 @@ function Player() {
 	this.y;
 	this.xvel = 0;
 	this.yvel = 0;
+	this.isDead = false;
+	this.health = 3;
+	this.damageTick = 0;
 	
 	this.input = function() {
 		//key processing
@@ -222,6 +235,17 @@ function Player() {
 		}
 	};
 	
+	this.takeDamage = function() {
+		if (tickCount > this.damageTick + invincibleTime) {
+			this.damageTick = tickCount;
+			this.health--;
+			if (this.health <= 0) {
+				this.isDead = true;
+			}
+			
+		}
+	};
+	
 	//checks for collisions
 	this.hitTest = function() {
 		this.hitTop		= this.y - 5;
@@ -244,6 +268,18 @@ function Player() {
 		if (this.hitBot >= map.h) {
 			this.yvel -= 2;
 			this.y = map.h -20;
+		}
+		
+		for (var i = 1; i < numEnemies; i++) {
+			if (
+				this.hitLeft <= enemy[i].x + 10
+				&& this.hitRight >= enemy[i].x - 10
+				&& this.hitTop <= enemy[i].y + 15
+				&& this.hitBot >= enemy[i].y -5
+				)
+			{
+				this.takeDamage();
+			}
 		}
 	};
 	
@@ -301,6 +337,7 @@ function Bullet() {
 	//Sets starting coords to the player's coords
 	this.x = player.x;
 	this.y = player.y;
+	this.isDestroyed = false;
 	
 	this.draw = function() {
 		context.beginPath();
@@ -322,22 +359,29 @@ function Bullet() {
 		this.hitRight	= this.x + 15;
 		
 		for (var i = 1; i < numEnemies; i++) {
-			if (enemy[i].x >= this.hitLeft && enemy[i].x <= this.hitRight && enemy[i].y >= this.hitTop && enemy[i].y <= this.hitBot) {
-				enemy[i].x = -10;
-				enemy[i].isDead = true;
+			if (
+				enemy[i].x >= this.hitLeft
+				&& enemy[i].x <= this.hitRight
+				&& enemy[i].y >= this.hitTop
+				&& enemy[i].y <= this.hitBot
+				)
+			{
+				enemy[i].takeDamage();
+				this.x = -10;
+				this.xvel= 0;
+				this.isDestroyed = true;
 			}
-// 			if (this.hitRight >= map.w) {
-// 				this.xvel -= 2;
-// 				this.x = map.w - 10;
-// 			}
-// 			if (this.hitTop <= 0) {
-// 				this.yvel += 2;
-// 				this.y = 10;
-// 			}
-// 			if (this.hitBot >= map.h) {
-// 				this.yvel -= 2;
-// 				this.y = map.h -20;
-// 			}
+		}
+		if (
+			this.x <= 0
+			|| this.x >= map.w
+			|| this.y <= 0
+			|| this.y >= map.h
+			)
+		{
+			this.x = -10;
+			this.xvel= 0;
+			this.isDestroyed = true;
 		}
 	};
 }
@@ -380,20 +424,10 @@ window.addEventListener ('keyup', function(evt) {
 window.addEventListener ('mousemove', function(evt) {
 	mousePos = getMousePos(canvas, evt);
 }, false);
-/*
- * Mouse press listeners:
- * 	if mouse is clicked, it will fire one bullet
- * 	if mouse is held, it will fire a bullet after a delay 
- * 	if mouse is spammed, it will treat the action as holding and clicking
- * 		bullets will fire very quickly
- * 		rewards the player for proactively clicking repeatedly
-*/
 window.addEventListener ('mousedown', function(evt) {
 	mouseDown = true;
+	mouseTick = 0;
 }, false);
 window.addEventListener ('mouseup', function(evt) {
 	mouseDown = false;
-}, false);
-window.addEventListener ('click', function(evt) {
-	player.shoot();
 }, false);
