@@ -33,6 +33,8 @@ var D = 68;
 //Color codes
 var BLACK = "#000000";
 var RED = "#FF0000";
+var GREEN = "33CC33";
+var ORANGE = "FF9933";
 
 //Control flags
 var mousePos	= [2];
