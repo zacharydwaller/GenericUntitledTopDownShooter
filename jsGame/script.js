@@ -54,15 +54,19 @@ function update() {
 	map.draw();
 	map.drawHUD();
 	
+	//End game when player dies
 	if (player.isDead) {
 		endGame();
 		return;
 	}
 	
+	//Increment tick
 	tickCount++;
 	
+	//Shoot on mouseDown
 	if (!player.isDead) {
 		if (mouseDown) {
+			//Fire rate limiter
 			if (mouseTick % fireDelay == 0) {
 					player.shoot();
 			}
@@ -70,7 +74,7 @@ function update() {
 		}
 	}
 	
-	//Player control
+	//Update player
 	if (!player.isDead) {
 		player.input();
 		player.hitTest();
@@ -79,7 +83,7 @@ function update() {
 		player.draw();
 	}
 	
-	//Enemy control
+	//Update enemies
 	for (var i = 1; i < numEnemies; i++) {
 		if (!enemy[i].isDead) {
 			enemy[i].findPlayer();
@@ -88,7 +92,7 @@ function update() {
 		}
 	}
 	
-	//Bullet control. For each bullet i
+	//Update bullets
 	for (var i = 1; i <= timesShot; i++) {
 		if (!shot[i].isDestroyed){
 			shot[i].move();
@@ -122,31 +126,32 @@ function update() {
 		3 - Fast
 			Very fast
 			1 hp
-	(player's speed is 2)
 */
 
-function randomInt(min, max) {
-		return Math.floor(Math.random() * (max - min)) + min;
-}
+
 
 function Enemy(type) {
-	this.type = type;
-	this.health;
+	//Position declarations
 	this.x;
 	this.y;
 	this.xvel = 0;
 	this.yvel = 0;
+	//Stat declarations
+	this.type = type;
+	this.health;
 	this.maxSpd;
 	this.accel;
 	this.isDead = false;
 	this.audio = new Audio('sounds/hitsound.wav');
 	
+	//Change stats according to enemy type
 	if (this.type == 1) {
 		this.maxSpd = enemyBaseSpeed;
 		this.health = 3;
 		this.accel = enemyBaseAccel;
 	}
-
+	
+	//Spawn enemy at random location away from player
  	if (Math.random() > .5) {
  		this.x = player.x + randomInt(400,800);
  	} else {
@@ -158,6 +163,7 @@ function Enemy(type) {
  		this.y = player.y - randomInt(400,800);
  	}
 	
+	//Draws enemy
 	this.draw = function() {
 		context.beginPath();
 		context.rect(this.x - 5, this.y, 10, 15);
@@ -167,6 +173,7 @@ function Enemy(type) {
 		context.fill();
 	};
 	
+	//Find and move to player
 	this.findPlayer = function() {
 	
 		if (this.y > player.y) {
@@ -191,6 +198,7 @@ function Enemy(type) {
 		}
 	};
 	
+	//Take damage, if health == 0, kill
 	this.takeDamage = function() {
 		this.health--;
 		this.audio.play();
@@ -200,9 +208,9 @@ function Enemy(type) {
 		}
 	};
 	
+	//Move based on final velocity
 	this.move = function() {
 		if (!this.isDead) {
-		//move player according to final velocity 
 			this.x += this.xvel;
 			this.y += this.yvel;
 		}
@@ -214,16 +222,19 @@ function Enemy(type) {
 */
 
 function Player() {
+	//Position declaration
 	this.x;
 	this.y;
 	this.xvel = 0;
 	this.yvel = 0;
+	//Stat declarations
 	this.isDead = false;
 	this.health = 3;
 	this.damageTick = 0;
 	
+	
+	//Key processing for movement
 	this.input = function() {
-		//key processing
 		if (keyPressed[W]) {
 			if (this.yvel >= -playerMaxSpeed) {
 				this.yvel -= playerAccel;
@@ -246,6 +257,7 @@ function Player() {
 		}
 	};
 	
+	//Take damage, if health == 0, kill
 	this.takeDamage = function() {
 		if (tickCount > this.damageTick + invincibleTime) {
 			this.damageTick = tickCount;
@@ -257,7 +269,7 @@ function Player() {
 		}
 	};
 	
-	//checks for collisions
+	//Checks for collisions between boundary and enemies
 	this.hitTest = function() {
 		this.hitTop		= this.y - 5;
 		this.hitBot		= this.y + 15;
@@ -294,12 +306,13 @@ function Player() {
 		}
 	};
 	
+	//move player according to final velocity 
 	this.move = function() {
-		//move player according to final velocity 
 		this.x += this.xvel;
 		this.y += this.yvel;
 	};
-		
+	
+	//Slow movement	
 	this.decelerate = function() {
 		if (this.xvel < 0) {
 			this.xvel += 1;
@@ -319,6 +332,7 @@ function Player() {
 		shot[timesShot] = new Bullet();
 	};
 	
+	//Draw player
 	this.draw = function() {
 		context.beginPath();
 		context.rect(this.x - 5, this.y, 10, 15);
@@ -334,7 +348,7 @@ function Player() {
 	bullet struct
 */
 function Bullet() {
-	/*Maths for bullet, trig based
+	/*Maths for bullet
 	 * Sets a vector for the bullet to travel
 	 * on based on where the mouse is relative
 	 * to the player.
@@ -349,21 +363,24 @@ function Bullet() {
 	//Sets starting coords to the player's coords
 	this.x = player.x;
 	this.y = player.y;
+	
 	this.isDestroyed = false;
 	
+	//Draws bullet
 	this.draw = function() {
 		context.beginPath();
 		context.arc(this.x, this.y, 3, 0, 2 * Math.PI);
 		context.closePath();
 		context.stroke();
 	};
-
+	
+	//Moves bullet
 	this.move = function() {
 		this.x += this.xvel;
  		this.y += this.yvel;
 	};
 	
-		//checks for collisions
+	//checks for collision of boundary or enemy
 	this.hitTest = function() {
 		this.hitTop		= this.y - 10;
 		this.hitBot		= this.y + 20;
@@ -398,10 +415,12 @@ function Bullet() {
 	};
 }
 
+//Map functions
 function Map() {
 	this.w = canvas.width;
 	this.h = canvas.height;
 	
+	//Draws the box around the map
 	this.draw = function() {
 		context.clearRect(0, 0, this.w, this.h);
 		context.beginPath()
@@ -414,7 +433,8 @@ function Map() {
 		context.closePath();
 		context.stroke();
 	};
-
+	
+	//Draws the Heads Up Display
 	this.drawHUD = function() {
 		//Player's health
 		context.font = "20px Georgia";
@@ -433,6 +453,11 @@ function endGame() {
 	context.fillText("Seconds", 450, 250);
 }
 
+// Returns a random integer between min (inclusive) and max (non-inclusive)
+function randomInt(min, max) {
+		return Math.floor(Math.random() * (max - min)) + min;
+}
+
 //Gets the mouse's position
 //Borrowed from Dave/Sushil's tic-tac-toe code
 function getMousePos (canvas, evt) {
@@ -443,7 +468,7 @@ function getMousePos (canvas, evt) {
 		};
 }
 
-//Input event listeners.
+//Input event listeners
 window.addEventListener ('keydown', function(evt) {
 	keyPressed[evt.keyCode] = true;
 }, false);
