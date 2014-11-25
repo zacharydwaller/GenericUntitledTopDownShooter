@@ -26,6 +26,12 @@ var enemy = [];
 var enemyBaseSpeed = 3;
 var enemyBaseAccel = 0.25;
 
+//PowerUp vars
+var freezeActive = false;
+var damageActive = false;
+var powerUp = [];
+var numPowerUps = 0;
+
 //Control key codes
 var W = 87;
 var A = 65;
@@ -89,10 +95,17 @@ function update() {
 	//Update enemies
 	for (var i = 1; i < numEnemies; i++) {
 		if (!enemy[i].isDead) {
-			enemy[i].findPlayer();
-			enemy[i].move();
+			if(!freezeActive) {
+				enemy[i].findPlayer();
+				enemy[i].move();
+			}
 			enemy[i].draw();
 		}
+	}
+	
+	//Update powerups
+	for (var i = 1; i <= numPowerUps; i++) {
+		powerUp[i].draw();
 	}
 	
 	//Update bullets
@@ -113,6 +126,10 @@ function update() {
 		if (spawnInterval < 10) 
 			spawnInterval = 10;
 		enemy[numEnemies] = new Enemy(1);
+		
+		numPowerUps++;
+		powerUp[numPowerUps] = new PowerUp(randomInt(1,3));
+		
 	}
 	
 }
@@ -418,6 +435,46 @@ function Bullet() {
 	};
 }
 
+//Powerup Functions: 1 = Medkit, 2 = Freeze, 3 = Bomb, 4 = Damage Increase
+function PowerUp(type) {
+	this.x = randomInt(0,map.w);
+ 	this.y = randomInt(0,map.h);
+	this.type = type;
+	
+	this.draw = function() {
+		//Draw medkit
+		if (this.type == 1) {
+			//Draw something
+			context.beginPath();
+			context.arc(this.x, this.y, 3, 0, 2 * Math.PI);
+			context.closePath();
+			context.stroke();
+		}
+		//Draw freeze
+		if (this.type == 2) {
+			context.beginPath();
+			context.arc(this.x, this.y, 3, 0, 2 * Math.PI);
+			context.moveTo(this.x, this.y);
+			context.lineTo(this.x + 10, this.y + 10);
+			context.closePath();
+			context.stroke();
+		}
+	};
+	
+	this.effect = function() {
+		//Medkit
+		if (this.type == 1) {
+			//Medkit code
+		}
+		//Freeze
+		if (this.type == 2) {
+			freezeActive = true;
+		}
+	};
+	
+ 	
+}
+
 //Map functions
 function Map() {
 	this.w = canvas.width;
@@ -444,6 +501,11 @@ function Map() {
 		context.fillStyle = BLACK;
 		context.fillText("HP:", 10, 20);
 		context.fillText(player.health, 50, 20);
+		
+		//Current Powerup
+		
+		//Score
+
 	};
 }
 
