@@ -25,11 +25,20 @@ var fireDelay		= 10;
 var timesShot		= 0;
 var shot			= [];
 
+//Enemy vars
+var spawnInterval = 120;
+var numEnemies = 0;
+var enemy = [];
+
 //Control key codes
 var W = 87;
 var A = 65;
 var S = 83;
 var D = 68;
+
+//Color codes
+var BLACK = "#000000";
+var RED = "#FF0000";
 
 //Control flags
 var mousePos	= [2];
@@ -48,10 +57,6 @@ function update() {
 	tickCount++;
 	map.draw();
 	
-	//write mouse position
-	//var message = "Mouse Position: " + mousePos.x + " , " + mousePos.y;
-	//writeMessage (canvas, message);
-	
 	//Fire bullet if mouse is pressed
 	if (mouseDown == true) {
 		if (tickCount % fireDelay == 0) {
@@ -66,12 +71,32 @@ function update() {
 	player.decelerate();
 	player.draw();
 	
+	//Enemy control
+	for (var i = 1; i < numEnemies; i++) {
+		
+		enemy[i].findPlayer();
+		enemy[i].move();
+		enemy[i].draw();
+	}
 	
 	//Bullet control. For each bullet i
 	for (var i = 1; i <= timesShot; i++) {
 		shot[i].move();
 		shot[i].draw();
+		shot[i].hitTest();
 	}
+	
+	//Spawn enemies
+	if (tickCount % spawnInterval == 0) {
+		console.log("Enemy Spawned");
+		console.log(spawnInterval);
+		numEnemies++;
+		spawnInterval--;
+		if (spawnInterval < 10) 
+			spawnInterval = 10;
+		enemy[numEnemies] = new Enemy(1);
+	}
+	
 }
 
 /*
@@ -88,18 +113,79 @@ function update() {
 			1 hp
 	(player's speed is 2)
 */
+
+function randomInt(min, max) {
+		return Math.floor(Math.random() * (max - min)) + min;
+}
+
 function Enemy(type) {
-	this.type = type; //
+	this.type = type;
+	this.health;
 	this.x;
 	this.y;
 	this.xvel = 0;
 	this.yvel = 0;
+	this.maxSpd;
+	this.accel;
+	this.isDead = false;
 	
 	if (this.type == 1) {
 		this.maxSpd = 5;
-	} else if (this.type == 2) {
-		this.maxSpd = 3;
+		this.health = 3;
+		this.accel = .25;
 	}
+
+ 	if (Math.random() > .5) {
+ 		this.x = player.x + randomInt(400,800);
+ 	} else {
+ 		this.x = player.x - randomInt(400,800);
+ 	}
+ 	if (Math.random() > .5) {
+ 		this.y = player.y + randomInt(400,800);
+ 	} else {
+ 		this.y = player.y - randomInt(400,800);
+ 	}
+	
+	this.draw = function() {
+		context.beginPath();
+		context.rect(this.x - 5, this.y, 10, 15);
+		context.arc(this.x, this.y, 5, 0, 2 * Math.PI);
+		context.closePath();
+		context.fillStyle = RED;
+		context.fill();
+	};
+	
+	this.findPlayer = function() {
+	
+		if (this.y > player.y) {
+			if (this.yvel >= -this.maxSpd) {
+				this.yvel -= this.accel;
+			}
+		}
+		if (this.y < player.y) {
+			if (this.yvel <= this.maxSpd) {
+				this.yvel += this.accel;
+			}
+		}
+		if (this.x > player.x) {
+			if (this.xvel >= -this.maxSpd) {
+				this.xvel -= this.accel;
+			}
+		}
+		if (this.x < player.x) {
+			if (this.xvel <= this.maxSpd) {
+				this.xvel += this.accel;
+			}
+		}
+	};
+	
+	this.move = function() {
+		if (!this.isDead) {
+		//move player according to final velocity 
+			this.x += this.xvel;
+			this.y += this.yvel;
+		}
+	};
 }
 
 /*
@@ -191,6 +277,7 @@ function Player() {
 		context.rect(this.x - 5, this.y, 10, 15);
 		context.arc(this.x, this.y, 5, 0, 2 * Math.PI);
 		context.closePath();
+		context.fillStyle = BLACK;
 		context.fill();
 	};
 }
@@ -225,6 +312,33 @@ function Bullet() {
 	this.move = function() {
 		this.x += this.xvel;
  		this.y += this.yvel;
+	};
+	
+		//checks for collisions
+	this.hitTest = function() {
+		this.hitTop		= this.y - 10;
+		this.hitBot		= this.y + 20;
+		this.hitLeft	= this.x - 15;
+		this.hitRight	= this.x + 15;
+		
+		for (var i = 1; i < numEnemies; i++) {
+			if (enemy[i].x >= this.hitLeft && enemy[i].x <= this.hitRight && enemy[i].y >= this.hitTop && enemy[i].y <= this.hitBot) {
+				enemy[i].x = -10;
+				enemy[i].isDead = true;
+			}
+// 			if (this.hitRight >= map.w) {
+// 				this.xvel -= 2;
+// 				this.x = map.w - 10;
+// 			}
+// 			if (this.hitTop <= 0) {
+// 				this.yvel += 2;
+// 				this.y = 10;
+// 			}
+// 			if (this.hitBot >= map.h) {
+// 				this.yvel -= 2;
+// 				this.y = map.h -20;
+// 			}
+		}
 	};
 }
 
