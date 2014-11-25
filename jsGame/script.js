@@ -1,3 +1,5 @@
+//cs135
+//project1
 var canvas	= document.getElementById('myCanvas');
 var context	= canvas.getContext('2d');
 var map = new Map();
