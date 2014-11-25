@@ -47,10 +47,17 @@ player.y	= map.h / 2;
 
 //Game Update
 setInterval (function () {update ()}, tick);
-function update() {
+function update() {	
 	//Frame initialization
-	tickCount++;
 	map.draw();
+	map.drawHUD();
+	
+	if (player.isDead) {
+		endGame();
+		return;
+	}
+	
+	tickCount++;
 	
 	if (!player.isDead) {
 		if (mouseDown) {
@@ -130,6 +137,7 @@ function Enemy(type) {
 	this.maxSpd;
 	this.accel;
 	this.isDead = false;
+	this.audio = new Audio('sounds/hitsound.wav');
 	
 	if (this.type == 1) {
 		this.maxSpd = enemyBaseSpeed;
@@ -183,6 +191,7 @@ function Enemy(type) {
 	
 	this.takeDamage = function() {
 		this.health--;
+		this.audio.play();
 		if (this.health <= 0) {
 			this.x = -10;
 			this.isDead = true;
@@ -316,6 +325,7 @@ function Player() {
 		context.fillStyle = BLACK;
 		context.fill();
 	};
+
 }
 
 /*
@@ -401,7 +411,24 @@ function Map() {
 		context.lineTo(0,0);
 		context.closePath();
 		context.stroke();
-	}
+	};
+
+	this.drawHUD = function() {
+		//Player's health
+		context.font = "20px Georgia";
+		context.fillStyle = BLACK;
+		context.fillText("HP:", 10, 20);
+		context.fillText(player.health, 50, 20);
+	};
+}
+
+function endGame() {
+	context.font = "50px Georgia";
+	context.fillStyle = RED;
+	context.fillText("You survived", 300, 200);
+	context.fillText(Math.round(tickCount / 60), 325, 250);
+	context.font = "30px Georgia";
+	context.fillText("Seconds", 450, 250);
 }
 
 //Gets the mouse's position
