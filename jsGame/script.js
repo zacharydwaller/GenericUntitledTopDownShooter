@@ -12,6 +12,7 @@ var tickCount	= 0;
 var playerAccel		= 2;
 var playerMaxSpeed	= 2;
 var invincibleTime = 30;
+var score = 0;
 
 //Bullet vars
 var bulletSpeed		= 15;
@@ -71,6 +72,10 @@ function update() {
 	
 	//Increment tick
 	tickCount++;
+	
+	//Increase score
+	if ( tickCount % 60 == 0)
+		score += 50;
 	
 	//Shoot on mouseDown
 	if (!player.isDead) {
@@ -147,9 +152,6 @@ function update() {
 			Very fast
 			1 hp
 */
-
-
-
 function Enemy() {
 	//Position declarations
 	this.x;
@@ -164,6 +166,7 @@ function Enemy() {
 	this.accel;
 	this.isDead = false;
 	this.audio = new Audio('sounds/hitsound.wav');
+	this.score;
 	//Declared at beginning of file
 	//var enemyBaseSpeed = 3;
 	//var enemyBaseAccel = 0.25;
@@ -186,18 +189,21 @@ function Enemy() {
 		this.maxSpd = enemyBaseSpeed;
 		this.health = 3;
 		this.accel = enemyBaseAccel;
+		this.score = 100;
 	//Strong
 	} else if (this.type == 2) {
 		console.log("Strong spawned")
 		this.maxSpd = enemyBaseSpeed / 1.5;
 		this.health = 10;
 		this.accel = enemyBaseAccel / 2;
+		this.score = 300;
 	//Fast
 	} else {
 		console.log("Fast spawned")
 		this.maxSpd = enemyBaseSpeed * 2;
 		this.health = 1;
 		this.accel = enemyBaseAccel * 2;
+		this.score = 150;
 	}
 	
 	//Spawn enemy at random location away from player
@@ -206,7 +212,7 @@ function Enemy() {
  	} else {
  		this.x = player.x - randomInt(400,800);
  	}
- 	if (Math.random() > .5) {s
+ 	if (Math.random() > .5) {
  		this.y = player.y + randomInt(400,800);
  	} else {
  		this.y = player.y - randomInt(400,800);
@@ -264,6 +270,7 @@ function Enemy() {
 		if (this.health <= 0) {
 			this.x = -10;
 			this.isDead = true;
+			score += this.score;
 		}
 	};
 	
@@ -542,19 +549,24 @@ function Map() {
 		context.fillText(player.health, 50, 20);
 		
 		//Current Powerup
+		//Timer
+		context.fillStyle = RED;
+		context.fillText("Time:", 10, 40);
+		context.fillText(Math.round(tickCount / 60), 60, 40);
 		
 		//Score
-
+		context.fillText("Score:", 10, 60);
+		context.fillText(score, 65, 60);
 	};
 }
 
 function endGame() {
-	context.font = "50px Georgia";
-	context.fillStyle = RED;
-	context.fillText("You survived", 300, 200);
-	context.fillText(Math.round(tickCount / 60), 325, 250);
-	context.font = "30px Georgia";
-	context.fillText("Seconds", 450, 250);
+ 	context.clearRect( 0,0,1000,1000);
+ 	context.font = "50px Georgia";
+ 	context.fillStyle = RED;
+ 	context.fillText("Game Over", 300, 200);
+ 	context.fillText("Your Score:", 250, 250);;
+ 	context.fillText(score, 500, 250);
 }
 
 // Returns a random integer between min (inclusive) and max (non-inclusive)
