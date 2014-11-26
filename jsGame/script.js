@@ -125,7 +125,7 @@ function update() {
 		spawnInterval--;
 		if (spawnInterval < 10) 
 			spawnInterval = 10;
-		enemy[numEnemies] = new Enemy(1);
+		enemy[numEnemies] = new Enemy();
 		
 		numPowerUps++;
 		powerUp[numPowerUps] = new PowerUp(randomInt(1,3));
@@ -150,25 +150,54 @@ function update() {
 
 
 
-function Enemy(type) {
+function Enemy() {
 	//Position declarations
 	this.x;
 	this.y;
 	this.xvel = 0;
 	this.yvel = 0;
 	//Stat declarations
-	this.type = type;
+	this.type = randomInt(0,100);
+	console.log("Roll:", this.type)
 	this.health;
 	this.maxSpd;
 	this.accel;
 	this.isDead = false;
 	this.audio = new Audio('sounds/hitsound.wav');
+	//Declared at beginning of file
+	//var enemyBaseSpeed = 3;
+	//var enemyBaseAccel = 0.25;
+	
+	//Picks a random Enemy
+	//60% Normal
+	//20% Strong or Fast
+	if (this.type < 60)
+		this.type = 1;
+	else if (this.type < 80)
+		this.type = 2;
+	else if (this.type < 100)
+		this.type = 3;
+	
 	
 	//Change stats according to enemy type
+	//Normal
 	if (this.type == 1) {
+		console.log("Normal spawned")
 		this.maxSpd = enemyBaseSpeed;
 		this.health = 3;
 		this.accel = enemyBaseAccel;
+	//Strong
+	} else if (this.type == 2) {
+		console.log("Strong spawned")
+		this.maxSpd = enemyBaseSpeed / 1.5;
+		this.health = 10;
+		this.accel = enemyBaseAccel / 2;
+	//Fast
+	} else {
+		console.log("Fast spawned")
+		this.maxSpd = enemyBaseSpeed * 2;
+		this.health = 1;
+		this.accel = enemyBaseAccel * 2;
 	}
 	
 	//Spawn enemy at random location away from player
@@ -177,7 +206,7 @@ function Enemy(type) {
  	} else {
  		this.x = player.x - randomInt(400,800);
  	}
- 	if (Math.random() > .5) {
+ 	if (Math.random() > .5) {s
  		this.y = player.y + randomInt(400,800);
  	} else {
  		this.y = player.y - randomInt(400,800);
@@ -186,10 +215,20 @@ function Enemy(type) {
 	//Draws enemy
 	this.draw = function() {
 		context.beginPath();
-		context.rect(this.x - 5, this.y, 10, 15);
-		context.arc(this.x, this.y, 5, 0, 2 * Math.PI);
+		if (this.type == 1) {
+			context.fillStyle = ORANGE;
+			context.rect(this.x - 5, this.y, 10, 15);
+			context.arc(this.x, this.y, 5, 0, 2 * Math.PI);
+		} else if (this.type == 2){
+			context.fillStyle = RED;
+			context.rect(this.x - 7.5, this.y, 15, 20);
+			context.arc(this.x, this.y, 7.5, 0, 2 * Math.PI);
+		} else {
+			context.fillStyle = GREEN;
+			context.rect(this.x - 5, this.y, 10, 15);
+			context.arc(this.x, this.y, 5, 0, 2 * Math.PI);
+		}
 		context.closePath();
-		context.fillStyle = RED;
 		context.fill();
 	};
 	
@@ -402,10 +441,10 @@ function Bullet() {
 	
 	//checks for collision of boundary or enemy
 	this.hitTest = function() {
-		this.hitTop		= this.y - 10;
-		this.hitBot		= this.y + 20;
-		this.hitLeft	= this.x - 15;
-		this.hitRight	= this.x + 15;
+		this.hitTop		= this.y - 12.5;
+		this.hitBot		= this.y + 22.5;
+		this.hitLeft	= this.x - 17.5;
+		this.hitRight	= this.x + 17.5;
 		
 		for (var i = 1; i < numEnemies; i++) {
 			if (
