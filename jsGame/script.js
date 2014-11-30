@@ -492,20 +492,20 @@ function PowerUp(type) {
 		if (this.type == 1) {
 			//Draw something
 			context.beginPath();
-			context.rect(this.x, this.y, 3, 2);
+			context.arc(this.x, this.y, 3, 0, 2 * Math.PI);
 			context.closePath();
 			context.stroke();
-			context.fillStyle(RED);
+			context.fillStyle = RED;
 			context.fill();
 		}
 		//Draw freeze
 		if (this.type == 2) {
 			context.beginPath();
 			context.arc(this.x, this.y, 3, 0, 2 * Math.PI);
-			context.moveTo(this.x, this.y);
-			context.lineTo(this.x + 10, this.y + 10);
 			context.closePath();
 			context.stroke();
+			context.fillStyle = BLUE;
+			context.fill();
 		}
 	};
 	
