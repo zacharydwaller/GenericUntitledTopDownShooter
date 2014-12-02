@@ -8,6 +8,13 @@ var canvas	= document.getElementById('myCanvas');
 var context	= canvas.getContext('2d');
 var map = new Map();
 
+/*	if (keyPressed[ENTER]) {
+		initialize();
+	}
+
+*/
+//function initialize() {
+
 //tick = 1000 divided by frames per second
 var tick		= 1000 / 60;
 var tickCount	= 0;
@@ -45,6 +52,7 @@ var W = 87;
 var A = 65;
 var S = 83;
 var D = 68;
+var ENTER = 13;
 var UP = 38;
 var LEFT = 37;
 var DOWN = 40;
