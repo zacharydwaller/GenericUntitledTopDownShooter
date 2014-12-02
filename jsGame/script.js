@@ -41,6 +41,10 @@ var W = 87;
 var A = 65;
 var S = 83;
 var D = 68;
+var UP = 38;
+var LEFT = 37;
+var DOWN = 40;
+var RIGHT = 39;
 
 //Color codes
 var BLACK = "#000000";
@@ -317,22 +321,22 @@ function Player() {
 	
 	//Key processing for movement
 	this.input = function() {
-		if (keyPressed[W]) {
+		if (keyPressed[W] || keyPressed[UP]) {
 			if (this.yvel >= -playerMaxSpeed) {
 				this.yvel -= playerAccel;
 			}
 		}
-		if (keyPressed[S]) {
+		if (keyPressed[S] || keyPressed[DOWN]) {
 			if (this.yvel <= playerMaxSpeed) {
 				this.yvel += playerAccel;
 			}
 		}
-		if (keyPressed[A]) {
+		if (keyPressed[A] || keyPressed[LEFT]) {
 			if (this.xvel >= -playerMaxSpeed) {
 				this.xvel -= playerAccel;
 			}
 		}
-		if (keyPressed[D]) {
+		if (keyPressed[D] || keyPressed[RIGHT]) {
 			if (this.xvel <= playerMaxSpeed) {
 				this.xvel += playerAccel;
 			}
