@@ -17,6 +17,7 @@ var score = 0;
 //Bullet vars
 var bulletSpeed		= 15;
 var fireDelay		= 10;
+var delayScore		= 0
 var timesShot		= 0;
 var shot			= [];
 
@@ -78,8 +79,18 @@ function update() {
 	tickCount++;
 	
 	//Increase score
-	if ( tickCount % 60 == 0)
+	if (tickCount % 60 == 0) {
 		score += 50;
+	}
+	console.log(fireDelay);
+	//Increase fire rate
+	if (tickCount % 1200 == 0) {
+		console.log("memee");
+		fireDelay--;
+	}
+	if (fireDelay <= 1) {
+		fireDelay = 1;
+	}
 	
 	//Shoot on mouseDown
 	if (!player.isDead) {
@@ -392,12 +403,12 @@ function Player() {
 				if (
 					!powerUpActive
 					&& powerUp[i].type != 1
-					&& powerUp[i].type != 4
+					&& powerUp[i].type != 3
 					)
 				{
 					powerUp[i].activate();
 				}
-				if (powerUp[i].type == 1 || powerUp[i].type == 4) {
+				if (powerUp[i].type == 1 || powerUp[i].type == 3) {
 					powerUp[i].activate();
 				}
 			}
