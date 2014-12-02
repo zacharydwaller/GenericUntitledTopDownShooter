@@ -133,7 +133,7 @@ function update() {
 	}
 	
 	//Spawn enemies
-	if (tickCount % spawnInterval == 0) {
+	if (tickCount % spawnInterval == 0 && !freezeActive) {
 		numEnemies++;
 		spawnInterval--;
 		if (spawnInterval < 10) 
@@ -142,7 +142,7 @@ function update() {
 	}
 	
 	//Spawn powerups
-	if (tickCount % powerUpSpawnInterval == 0) {
+	if (tickCount % powerUpSpawnInterval == 0 && !freezeActive) {
 		numPowerUps++;
 		powerUp[numPowerUps] = new PowerUp();
 	}
@@ -373,6 +373,7 @@ function Player() {
 				&& this.hitRight >= enemy[i].x - 10
 				&& this.hitTop <= enemy[i].y + 15
 				&& this.hitBot >= enemy[i].y -5
+				&& !freezeActive
 				)
 			{
 				this.takeDamage();
@@ -391,11 +392,12 @@ function Player() {
 				if (
 					!powerUpActive
 					&& powerUp[i].type != 1
+					&& powerUp[i].type != 4
 					)
 				{
 					powerUp[i].activate();
 				}
-				if (powerUp[i].type == 1) {
+				if (powerUp[i].type == 1 || powerUp[i].type == 4) {
 					powerUp[i].activate();
 				}
 			}
