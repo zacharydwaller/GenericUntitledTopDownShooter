@@ -1,5 +1,9 @@
-//cs135
-//project1
+/*	TODO: Add start/restart
+	Local Storage, top 10 scores
+	Sound effects
+	Background music
+	Background
+*/
 var canvas	= document.getElementById('myCanvas');
 var context	= canvas.getContext('2d');
 var map = new Map();
