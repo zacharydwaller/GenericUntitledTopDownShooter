@@ -28,10 +28,12 @@ var enemyBaseSpeed = 3;
 var enemyBaseAccel = 0.25;
 
 //PowerUp vars
+var powerUpActive = false;
 var freezeActive = false;
 var damageActive = false;
 var powerUp = [];
 var numPowerUps = 0;
+var powerUpSpawnInterval = 10 * 60; //5 seconds * 60 frames
 
 //Control key codes
 var W = 87;
@@ -45,6 +47,7 @@ var RED = "#FF0000";
 var GREEN = "#33CC33";
 var ORANGE = "#FF9933";
 var BLUE = "#0000FF"
+var WHITE = "#FFFFFF";
 
 //Control flags
 var mousePos	= [2];
@@ -63,6 +66,7 @@ function update() {
 	//Frame initialization
 	map.draw();
 	map.drawHUD();
+	
 	
 	//End game when player dies
 	if (player.isDead) {
@@ -98,7 +102,7 @@ function update() {
 	}
 	
 	//Update enemies
-	for (var i = 1; i < numEnemies; i++) {
+	for (var i = 1; i <= numEnemies; i++) {
 		if (!enemy[i].isDead) {
 			if(!freezeActive) {
 				enemy[i].findPlayer();
@@ -110,12 +114,18 @@ function update() {
 	
 	//Update powerups
 	for (var i = 1; i <= numPowerUps; i++) {
-		powerUp[i].draw();
+		if (!powerUp[i].destroyed) {
+			powerUp[i].draw();
+		}
+		if (powerUp[i].active) {
+			powerUp[i].timer < powerUp[i].duration ?
+			powerUp[i].timer++ : powerUp[i].deactivate();
+		}
 	}
 	
 	//Update bullets
 	for (var i = 1; i <= timesShot; i++) {
-		if (!shot[i].isDestroyed){
+		if (!shot[i].destroyed){
 			shot[i].move();
 			shot[i].draw();
 			shot[i].hitTest();
@@ -124,19 +134,18 @@ function update() {
 	
 	//Spawn enemies
 	if (tickCount % spawnInterval == 0) {
-		console.log("Enemy Spawned");
-		console.log("Ticks until next spawn:", spawnInterval, "(", spawnInterval / 60, "seconds)");
 		numEnemies++;
 		spawnInterval--;
 		if (spawnInterval < 10) 
 			spawnInterval = 10;
 		enemy[numEnemies] = new Enemy();
-		
-		numPowerUps++;
-		powerUp[numPowerUps] = new PowerUp(randomInt(1,3));
-		
 	}
 	
+	//Spawn powerups
+	if (tickCount % powerUpSpawnInterval == 0) {
+		numPowerUps++;
+		powerUp[numPowerUps] = new PowerUp();
+	}
 }
 
 /*
@@ -160,7 +169,6 @@ function Enemy() {
 	this.yvel = 0;
 	//Stat declarations
 	this.type = randomInt(0,100);
-	console.log("Roll:", this.type)
 	this.health;
 	this.maxSpd;
 	this.accel;
@@ -185,21 +193,18 @@ function Enemy() {
 	//Change stats according to enemy type
 	//Normal
 	if (this.type == 1) {
-		console.log("Normal spawned")
 		this.maxSpd = enemyBaseSpeed;
 		this.health = 3;
 		this.accel = enemyBaseAccel;
 		this.score = 100;
 	//Strong
 	} else if (this.type == 2) {
-		console.log("Strong spawned")
 		this.maxSpd = enemyBaseSpeed / 1.5;
 		this.health = 10;
-		this.accel = enemyBaseAccel / 2;
+		this.accel = enemyBaseAccel / 4;
 		this.score = 300;
 	//Fast
 	} else {
-		console.log("Fast spawned")
 		this.maxSpd = enemyBaseSpeed * 2;
 		this.health = 1;
 		this.accel = enemyBaseAccel * 2;
@@ -268,7 +273,8 @@ function Enemy() {
 		this.health--;
 		this.audio.play();
 		if (this.health <= 0) {
-			this.x = -10;
+			this.x = -1000;
+			this.y = -1000
 			this.isDead = true;
 			score += this.score;
 		}
@@ -342,6 +348,7 @@ function Player() {
 		this.hitLeft	= this.x - 10;
 		this.hitRight	= this.x + 10;
 		
+		//wall hittest
 		if (this.hitLeft <= 0) {
 			this.xvel += 2;
 			this.x = 10;
@@ -359,7 +366,8 @@ function Player() {
 			this.y = map.h -20;
 		}
 		
-		for (var i = 1; i < numEnemies; i++) {
+		//Enemy hittest
+		for (var i = 1; i <= numEnemies; i++) {
 			if (
 				this.hitLeft <= enemy[i].x + 10
 				&& this.hitRight >= enemy[i].x - 10
@@ -368,6 +376,28 @@ function Player() {
 				)
 			{
 				this.takeDamage();
+			}
+		}
+		
+		//powerups hittest
+		for (var i = 1; i <= numPowerUps; i++) {
+			if (
+				this.hitLeft <= powerUp[i].x + 5
+				&& this.hitRight >= powerUp[i].x - 5
+				&& this.hitTop <= powerUp[i].y + 5
+				&& this.hitBot >= powerUp[i].y - 5
+				)
+			{
+				if (
+					!powerUpActive
+					&& powerUp[i].type != 1
+					)
+				{
+					powerUp[i].activate();
+				}
+				if (powerUp[i].type == 1) {
+					powerUp[i].activate();
+				}
 			}
 		}
 	};
@@ -430,14 +460,15 @@ function Bullet() {
 	this.x = player.x;
 	this.y = player.y;
 	
-	this.isDestroyed = false;
+	this.destroyed = false;
 	
 	//Draws bullet
 	this.draw = function() {
+		damageActive ? context.fillStyle = RED : context.fillStyle = BLACK;
 		context.beginPath();
 		context.arc(this.x, this.y, 3, 0, 2 * Math.PI);
 		context.closePath();
-		context.stroke();
+		context.fill();
 	};
 	
 	//Moves bullet
@@ -453,18 +484,24 @@ function Bullet() {
 		this.hitLeft	= this.x - 17.5;
 		this.hitRight	= this.x + 17.5;
 		
-		for (var i = 1; i < numEnemies; i++) {
+		for (var i = 1; i <= numEnemies; i++) {
 			if (
 				enemy[i].x >= this.hitLeft
 				&& enemy[i].x <= this.hitRight
 				&& enemy[i].y >= this.hitTop
 				&& enemy[i].y <= this.hitBot
+				&& !enemy[i].destroyed
 				)
 			{
 				enemy[i].takeDamage();
+				if (damageActive) {
+					for (var j = 0; j < 3; j++) {
+						enemy[i].takeDamage();
+					}
+				}
 				this.x = -10;
 				this.xvel= 0;
-				this.isDestroyed = true;
+				this.destroyed = true;
 			}
 		}
 		if (
@@ -476,51 +513,125 @@ function Bullet() {
 		{
 			this.x = -10;
 			this.xvel= 0;
-			this.isDestroyed = true;
+			this.destroyed = true;
 		}
 	};
 }
 
-//Powerup Functions: 1 = Medkit, 2 = Freeze, 3 = Bomb, 4 = Damage Increase
-function PowerUp(type) {
-	this.x = randomInt(0,map.w);
- 	this.y = randomInt(0,map.h);
-	this.type = type;
+//Powerup Functions
+//1 = Medkit, 2 = Freeze, 3 = Bomb, 4 = Damage Increase
+function PowerUp() {
+	this.x = randomInt(0 + 20,map.w - 20);
+ 	this.y = randomInt(0 + 20,map.h - 20);
+	this.type = randomInt(1,5);
+	this.timer = 0;
+	this.active = false;
+	this.destroyed = false;
 	
 	this.draw = function() {
 		//Draw medkit
 		if (this.type == 1) {
-			//Draw something
+			context.strokeStyle = BLACK;
 			context.beginPath();
-			context.arc(this.x, this.y, 3, 0, 2 * Math.PI);
-			context.closePath();
+			context.lineWidth = 2;
+			context.arc(this.x, this.y, 10, 0, 2 * Math.PI);
 			context.stroke();
-			context.fillStyle = RED;
-			context.fill();
+			context.closePath();
+			
+			context.strokeStyle = RED;
+			context.beginPath();
+			context.moveTo(this.x + 7, this.y);
+			context.lineTo(this.x - 7, this.y);
+			context.moveTo(this.x, this.y + 7);
+			context.lineTo(this.x, this.y - 7);
+			context.stroke();
+			context.closePath();
 		}
 		//Draw freeze
 		if (this.type == 2) {
-			context.beginPath();
-			context.arc(this.x, this.y, 3, 0, 2 * Math.PI);
-			context.closePath();
-			context.stroke();
 			context.fillStyle = BLUE;
+			context.beginPath();
+			context.arc(this.x, this.y, 10, 0, 2 * Math.PI);
 			context.fill();
+			context.closePath();
+			
+			context.beginPath();
+			context.fillStyle = WHITE;
+			context.arc(this.x, this.y, 5, 0, 2 * Math.PI);
+			context.fill();
+			context.closePath();
+			
+		}
+		//Draw bomb
+		if (this.type == 3) {
+			context.beginPath();
+			context.fillStyle = BLACK;
+			context.arc(this.x, this.y, 10, 0, 2 * Math.PI);
+			context.fillRect(this.x - 2.5, this.y - 13, 5, 5);
+			context.fill();
+			context.closePath();
+		}
+		//Draw damage
+		if (this.type == 4) {
+			context.beginPath();
+			context.strokeStyle = BLACK;
+			context.fillStyle = ORANGE;
+			context.rect(this.x - 13, this.y - 5, 8, 10);
+			context.arc(this.x - 9, this.y - 5, 4, 0, 2 * Math.PI);
+			context.stroke();
+			context.rect(this.x - 4, this.y - 5, 8, 10);
+			context.arc(this.x, this.y - 5, 4, 0, 2 * Math.PI);
+			context.stroke();
+			context.rect(this.x + 5, this.y - 5, 8, 10);
+			context.arc(this.x + 9, this.y - 5, 4, 0, 2 * Math.PI);
+			context.stroke();
+			context.fill();
+			context.closePath();
 		}
 	};
 	
-	this.effect = function() {
+	this.activate = function() {
+		powerUpActive = true;
+		this.active = true;
+		this.destroyed = true;
+		this.x = -10;
 		//Medkit
 		if (this.type == 1) {
-			//Medkit code
+			this.duration = 1;
+			player.health++;
 		}
 		//Freeze
 		if (this.type == 2) {
+			this.duration = 4 * 60; // 4 seconds times 60 frames
 			freezeActive = true;
+		}
+		//Bomb
+		if (this.type == 3) {
+			this.duration = 1;
+			for (var i = 1; i <= numEnemies; i++) {
+				for (var j = 0; j < 3; j++) {
+					enemy[i].takeDamage();
+				}
+			}
+		}
+		//Damage
+		if (this.type == 4) {
+			this.duration = 10 * 60; // 10 seconds times 60 frames
+			damageActive = true;
 		}
 	};
 	
- 	
+ 	this.deactivate = function() {
+		powerUpActive = false;
+		this.active = false;
+		//Freeze
+		if (this.type == 2) {
+			freezeActive = false;
+		}
+		if (this.type == 4) {
+			damageActive = false;
+		}
+	}
 }
 
 //Map functions
@@ -532,7 +643,8 @@ function Map() {
 	this.draw = function() {
 		context.clearRect(0, 0, this.w, this.h);
 		context.beginPath()
-		context.linewidth = 3;
+		context.lineWidth = 1;
+		context.strokeStyle = BLACK;
 		context.moveTo(0,0);
 		context.lineTo(this.w,0);
 		context.lineTo(this.w,this.h);
@@ -550,15 +662,15 @@ function Map() {
 		context.fillText("HP:", 10, 20);
 		context.fillText(player.health, 50, 20);
 		
-		//Current Powerup
-		//Timer
-		context.fillStyle = RED;
-		context.fillText("Time:", 10, 40);
-		context.fillText(Math.round(tickCount / 60), 60, 40);
-		
 		//Score
-		context.fillText("Score:", 10, 60);
-		context.fillText(score, 65, 60);
+		context.fillText("Score:", 10, 40);
+		context.fillText(score, 65, 40);
+		
+		//PowerUp
+		if (freezeActive)
+			context.fillText("Freeze Active", 10, 60);
+		if (damageActive)
+			context.fillText("Triple Damage!", 10, 60);
 	};
 }
 
