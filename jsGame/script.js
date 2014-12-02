@@ -82,10 +82,9 @@ function update() {
 	if (tickCount % 60 == 0) {
 		score += 50;
 	}
-	console.log(fireDelay);
+	
 	//Increase fire rate
 	if (tickCount % 1200 == 0) {
-		console.log("memee");
 		fireDelay--;
 	}
 	if (fireDelay <= 1) {
