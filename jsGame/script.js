@@ -8,12 +8,30 @@ var canvas	= document.getElementById('myCanvas');
 var context	= canvas.getContext('2d');
 var map = new Map();
 
-/*	if (keyPressed[ENTER]) {
-		initialize();
-	}
+//Control key codes
+var W = 87;
+var A = 65;
+var S = 83;
+var D = 68;
+var UP = 38;
+var LEFT = 37;
+var DOWN = 40;
+var RIGHT = 39;
+var ENTER = 13;
 
-*/
-//function initialize() {
+//Color codes
+var BLACK = "#000000";
+var RED = "#FF0000";
+var GREEN = "#00FF00";
+var ORANGE = "#FFFF00";
+var BLUE = "#00FFFF"
+var WHITE = "#FFFFFF";
+
+//Control flags
+var mousePos	= [2];
+var keyPressed	= [ ];
+var mouseDown;
+var mouseTick;
 
 //tick = 1000 divided by frames per second
 var tick		= 1000 / 60;
@@ -28,7 +46,6 @@ var score = 0;
 //Bullet vars
 var bulletSpeed		= 15;
 var fireDelay		= 10;
-var delayScore		= 0
 var timesShot		= 0;
 var shot			= [];
 
@@ -47,43 +64,36 @@ var powerUp = [];
 var numPowerUps = 0;
 var powerUpSpawnInterval = 10 * 60; //5 seconds * 60 frames
 
-//Control key codes
-var W = 87;
-var A = 65;
-var S = 83;
-var D = 68;
-var ENTER = 13;
-var UP = 38;
-var LEFT = 37;
-var DOWN = 40;
-var RIGHT = 39;
-
-//Color codes
-var BLACK = "#000000";
-var RED = "#FF0000";
-var GREEN = "#33CC33";
-var ORANGE = "#FF9933";
-var BLUE = "#0000FF"
-var WHITE = "#FFFFFF";
-
-//Control flags
-var mousePos	= [2];
-var keyPressed	= [ ];
-var mouseDown;
-var mouseTick;
-
 //Player initialization
 var player	= new Player();
 player.x	= map.w  / 2;
 player.y	= map.h / 2;
 
-//Game Update
 setInterval (function () {update ()}, tick);
+
+function initialize() {
+	tickCount = 0;
+	score = 0;
+	fireDelay = 10;
+	timesShot = 0;
+	shot = [];
+	spawnInterval = 120;
+	numEnemies = 0;
+	enemy = [];
+	player.x	= map.w  / 2;
+	player.y	= map.h / 2;
+	player.health = 3;
+	player.isDead = false;
+}
+
 function update() {	
 	//Frame initialization
 	map.draw();
 	map.drawHUD();
 	
+	if (keyPressed[ENTER]) {
+		initialize();
+	}
 	
 	//End game when player dies
 	if (player.isDead) {
@@ -462,7 +472,7 @@ function Player() {
 		context.rect(this.x - 5, this.y, 10, 15);
 		context.arc(this.x, this.y, 5, 0, 2 * Math.PI);
 		context.closePath();
-		context.fillStyle = BLACK;
+		context.fillStyle = WHITE;
 		context.fill();
 	};
 
@@ -492,7 +502,7 @@ function Bullet() {
 	
 	//Draws bullet
 	this.draw = function() {
-		damageActive ? context.fillStyle = RED : context.fillStyle = BLACK;
+		damageActive ? context.fillStyle = RED : context.fillStyle = WHITE;
 		context.beginPath();
 		context.arc(this.x, this.y, 3, 0, 2 * Math.PI);
 		context.closePath();
@@ -559,7 +569,7 @@ function PowerUp() {
 	this.draw = function() {
 		//Draw medkit
 		if (this.type == 1) {
-			context.strokeStyle = BLACK;
+			context.strokeStyle = WHITE;
 			context.beginPath();
 			context.lineWidth = 2;
 			context.arc(this.x, this.y, 10, 0, 2 * Math.PI);
@@ -584,7 +594,7 @@ function PowerUp() {
 			context.closePath();
 			
 			context.beginPath();
-			context.fillStyle = WHITE;
+			context.fillStyle = BLACK;
 			context.arc(this.x, this.y, 5, 0, 2 * Math.PI);
 			context.fill();
 			context.closePath();
@@ -593,7 +603,7 @@ function PowerUp() {
 		//Draw bomb
 		if (this.type == 3) {
 			context.beginPath();
-			context.fillStyle = BLACK;
+			context.fillStyle = RED;
 			context.arc(this.x, this.y, 10, 0, 2 * Math.PI);
 			context.fillRect(this.x - 2.5, this.y - 13, 5, 5);
 			context.fill();
@@ -602,7 +612,7 @@ function PowerUp() {
 		//Draw damage
 		if (this.type == 4) {
 			context.beginPath();
-			context.strokeStyle = BLACK;
+			context.strokeStyle = RED;
 			context.fillStyle = ORANGE;
 			context.rect(this.x - 13, this.y - 5, 8, 10);
 			context.arc(this.x - 9, this.y - 5, 4, 0, 2 * Math.PI);
@@ -671,22 +681,16 @@ function Map() {
 	this.draw = function() {
 		context.clearRect(0, 0, this.w, this.h);
 		context.beginPath()
-		context.lineWidth = 1;
-		context.strokeStyle = BLACK;
-		context.moveTo(0,0);
-		context.lineTo(this.w,0);
-		context.lineTo(this.w,this.h);
-		context.lineTo(0,this.h);
-		context.lineTo(0,0);
+		context.fillStyle = BLACK;
+		context.fillRect(0,0,this.w,this.h);
 		context.closePath();
-		context.stroke();
 	};
 	
 	//Draws the Heads Up Display
 	this.drawHUD = function() {
 		//Player's health
 		context.font = "20px Georgia";
-		context.fillStyle = BLACK;
+		context.fillStyle = WHITE;
 		context.fillText("HP:", 10, 20);
 		context.fillText(player.health, 50, 20);
 		
@@ -703,10 +707,10 @@ function Map() {
 }
 
 function endGame() {
- 	context.clearRect( 0,0,1000,1000);
+ 	map.draw();
  	context.font = "50px Georgia";
  	context.fillStyle = RED;
- 	context.fillText("Game Over", 300, 200);
+ 	context.fillText("You Died", 300, 200);
  	context.fillText("Your Score:", 250, 250);;
  	context.fillText(score, 500, 250);
 }
