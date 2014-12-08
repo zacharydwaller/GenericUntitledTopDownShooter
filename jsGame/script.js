@@ -33,6 +33,16 @@ var keyPressed	= [ ];
 var mouseDown;
 var mouseTick;
 
+//Sound Effects
+var bomb = new Audio('sounds/bomb.wav');
+var damage = new Audio('sounds/damage.wav');
+var death = new Audio('sounds/death.wav');
+var freeze = new Audio('sounds/freeze.wav');
+var hit = new Audio('sounds/hit.wav');
+var hurt = new Audio('sounds/hurt.wav');
+var medkit = new Audio('sounds/medkit.wav');
+var shotSound = new Audio('sounds/shot.wav');
+
 //tick = 1000 divided by frames per second
 var tick		= 1000 / 60;
 var tickCount	= 0;
@@ -122,7 +132,8 @@ function update() {
 		if (mouseDown) {
 			//Fire rate limiter
 			if (mouseTick % fireDelay == 0) {
-					player.shoot();
+				shotSound.play();
+				player.shoot();
 			}
 			mouseTick++;
 		}
@@ -209,7 +220,6 @@ function Enemy() {
 	this.maxSpd;
 	this.accel;
 	this.isDead = false;
-	this.audio = new Audio('sounds/hitsound.wav');
 	this.score;
 	//Declared at beginning of file
 	//var enemyBaseSpeed = 3;
@@ -307,7 +317,7 @@ function Enemy() {
 	//Take damage, if health == 0, kill
 	this.takeDamage = function() {
 		this.health--;
-		this.audio.play();
+		hit.play();
 		if (this.health <= 0) {
 			this.x = -1000;
 			this.y = -1000
@@ -413,6 +423,7 @@ function Player() {
 				)
 			{
 				this.takeDamage();
+				hurt.play();
 			}
 		}
 		
@@ -464,6 +475,7 @@ function Player() {
 	this.shoot = function() {
 		timesShot++;
 		shot[timesShot] = new Bullet();
+		
 	};
 	
 	//Draw player
@@ -499,6 +511,7 @@ function Bullet() {
 	this.y = player.y;
 	
 	this.destroyed = false;
+	
 	
 	//Draws bullet
 	this.draw = function() {
@@ -637,11 +650,13 @@ function PowerUp() {
 		if (this.type == 1) {
 			this.duration = 1;
 			player.health++;
+			medkit.play();
 		}
 		//Freeze
 		if (this.type == 2) {
 			this.duration = 4 * 60; // 4 seconds times 60 frames
 			freezeActive = true;
+			freeze.play();
 		}
 		//Bomb
 		if (this.type == 3) {
@@ -651,11 +666,13 @@ function PowerUp() {
 					enemy[i].takeDamage();
 				}
 			}
+			bomb.play();
 		}
 		//Damage
 		if (this.type == 4) {
 			this.duration = 10 * 60; // 10 seconds times 60 frames
 			damageActive = true;
+			damage.play();
 		}
 	};
 	
@@ -706,6 +723,7 @@ function Map() {
 	};
 }
 
+var soundPlayed = false;
 function endGame() {
  	map.draw();
  	context.font = "50px Georgia";
@@ -713,6 +731,10 @@ function endGame() {
  	context.fillText("You Died", 300, 200);
  	context.fillText("Your Score:", 250, 250);;
  	context.fillText(score, 500, 250);
+	if (!soundPlayed) {
+		death.play();
+		soundPlayed = true;
+	}
 }
 
 // Returns a random integer between min (inclusive) and max (non-inclusive)
