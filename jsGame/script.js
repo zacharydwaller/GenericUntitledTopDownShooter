@@ -3,7 +3,7 @@
 	Sound effects
 	Background music
 	Background
-	Test
+	Test 2
 */
 var canvas	= document.getElementById('myCanvas');
 var context	= canvas.getContext('2d');
