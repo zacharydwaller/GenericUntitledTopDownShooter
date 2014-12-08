@@ -43,6 +43,7 @@ var hit = new Audio('sounds/hit.wav');
 var hurt = new Audio('sounds/hurt.wav');
 var medkit = new Audio('sounds/medkit.wav');
 var shotSound = new Audio('sounds/shot.wav');
+var bgMusic = new Audio('sounds/bgMusic.wav');
 
 //tick = 1000 divided by frames per second
 var tick		= 1000 / 60;
@@ -81,6 +82,7 @@ player.x	= map.w  / 2;
 player.y	= map.h / 2;
 
 setInterval (function () {update ()}, tick);
+bgMusic.play();
 
 function initialize() {
 	tickCount = 0;
@@ -95,6 +97,13 @@ function initialize() {
 	player.y	= map.h / 2;
 	player.health = 3;
 	player.isDead = false;
+	powerUpActive = false;
+	freezeActive = false;
+	damageActive = false;
+	powerUp = [];
+	numPowerUps = 0;
+	bgMusic.currentTime = 0;
+	bgMusic.play();
 }
 
 function update() {	
@@ -626,7 +635,7 @@ function PowerUp() {
 		//Draw damage
 		if (this.type == 4) {
 			context.beginPath();
-			context.strokeStyle = RED;
+			context.strokeStyle = BLACK;
 			context.fillStyle = ORANGE;
 			context.rect(this.x - 13, this.y - 5, 8, 10);
 			context.arc(this.x - 9, this.y - 5, 4, 0, 2 * Math.PI);
@@ -732,6 +741,7 @@ function endGame() {
  	context.fillText("You Died", 300, 200);
  	context.fillText("Your Score:", 250, 250);;
  	context.fillText(score, 500, 250);
+	bgMusic.pause();
 	if (!soundPlayed) {
 		death.play();
 		soundPlayed = true;
