@@ -5,10 +5,29 @@
       body {
         margin: 10px;
         padding: 10px;
+		background-color: #222222;
       }
+	  h1 {
+		color: #999999;
+		font: "Monaco";
+	  }
+	  h3 {
+		color: #666666;
+		font: "Monaco";
+	  }
+	  p {
+		color: #666666;
+		font: "Monaco";
+	  }
+	  footer {
+		color #444444;
+		font: "Monaco";
+		font-size: 80%;
+	  }
     </style>
   </head>
   <body>
+  
 	<sound id = "bomb" src = "/sounds/bomb.wav"/>
 	<sound id = "damage" src = "/sounds/damage.wav"/>
 	<sound id = "death" src = "/sounds/death.wav"/>
@@ -17,7 +36,30 @@
 	<sound id = "hurt" src = "/sounds/hurt.wav"/>
 	<sound id = "medkit" src = "/sounds/medkit.wav"/>
 	<sound id = "shot" src = "/sounds/shot.wav"/>
-    <center><canvas id="myCanvas" width="800" height="640"></canvas></center>
-    <script src = "script.js"></script>
+    <center>
+		<span style = "cursor:crosshair">
+		<canvas id="myCanvas" width="800" height="640"></canvas>
+		<script src = "script.js"></script>
+		</span>
+	
+		<h1> Generic Untitled Top-Down Shooter</h1>
+		<h3> Zachary Waller, Paris Burnside</h3>
+		<p>
+		WASD or Arrow Keys to move </br>
+		Mouse to aim and shoot </br>
+		Enter to restart </br>
+		</p>
+		
+		<footer>
+		<p>
+		Music courtesy of
+		<a href="https://www.youtube.com/user/JonTronShow">JonTron</a></br>
+		Sound effects courtesy of <a href="http://woolyss.com/chipmusic-samples.php?s=ATOM+SPLITTER+AUDIO+-+Games+and+8-Bit+Kit+Volume+1">
+		Atom Splitter 8-Bit Kit</a>
+		</p>
+		</footer>. 
+		
+		
+	</center>
   </body>
 </html>      
