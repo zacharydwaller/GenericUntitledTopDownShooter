@@ -1,3 +1,3 @@
 # csProject
 
-Final project for CS 135 - December 2014
+Final project for CS 135 - Fall 2014
