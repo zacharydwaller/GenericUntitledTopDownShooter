@@ -1,4 +1,4 @@
-# csProject
+# CS 135 - Computer Science I
 
 Final project for CS 135 - Fall 2014
 
